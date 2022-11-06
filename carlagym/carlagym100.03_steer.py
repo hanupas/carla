@@ -24,7 +24,7 @@ IM_HEIGHT = 80
 def process_img(image):
     i = np.array(image.raw_data)
     i2 = i.reshape(IM_HEIGHT, IM_WIDTH,4)
-    print(i2.shape)
+    # print(i2.shape)
     i3 = i2[:,:,:3]
     cv2.imshow("",i3)
     cv2.waitKey(1)
@@ -40,7 +40,8 @@ blueprint_library = world.get_blueprint_library()
 model_3 = blueprint_library.filter("model3")[0]
 spawnpoint = world.get_map().get_spawn_points()
 vehicle = world.spawn_actor(model_3,spawnpoint[1])
-vehicle.set_autopilot(True)
+# vehicle.apply_control(carla.VehicleControl(throttle=1.0, steer=1.0))
+vehicle.apply_control(carla.VehicleControl(throttle=1.0, steer=-1.0))
 actor_list.append(vehicle)
 
 ################# CAMERA #############################
