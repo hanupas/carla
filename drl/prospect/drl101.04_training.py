@@ -54,6 +54,7 @@ SHOW_PREVIEW = True
 
 OBSERVATION_SPACE_DIMS = (IM_WIDTH, IM_HEIGHT, 3)
 ACTION_SPACE_SIZE = 5
+episode_reward = 0
 
 # Own Tensorboard class
 class ModifiedTensorBoard(TensorBoard):
@@ -182,19 +183,27 @@ class DQNAgent:
 
 
 def process_img(image):
+	global episode_reward
+	
 	i = np.array(image.raw_data)
-	# i2 = i.reshape(IM_HEIGHT, IM_WIDTH,4)
-	i2 = i
-	# print(i2.shape)
+	i2 = i.reshape(IM_HEIGHT, IM_WIDTH,4)
 	i3 = i2[:,:,:3]
 	cv2.imshow("",i3)
 	cv2.waitKey(1)
 	steer_chosen = random.choice(steer)
 	vehicle.apply_control(carla.VehicleControl(throttle=1.0, steer=steer_chosen))
 	speed = 3.6 * math.sqrt(vehicle.get_velocity().x**2 + vehicle.get_velocity().y**2 + vehicle.get_velocity().z**2)
-	print(f"speed={speed} km/h")
+		
+	if np.random.random() > epsilon:
+		action = np.argmax(agent.get_qs(image))
+	else:
+		action = np.random.randint(0, len(steer))
 	
-	# new_state = image
+	episode_reward += speed
+	new_state = image
+	reward = speed
+	done = False
+	info = ""
 	
 
 
@@ -207,7 +216,6 @@ blueprint_library = world.get_blueprint_library()
 agent = DQNAgent()
 
 for episode in tqdm(range(1, EPISODES+1), ascii=True, unit="episode"):
-	print(f"EPISODE = {episode}")
 	agent.tensorboard.step = episode
 
 	episode_reward = 0
@@ -238,3 +246,5 @@ for episode in tqdm(range(1, EPISODES+1), ascii=True, unit="episode"):
 		actor.destroy()
 
 	os.system('cls' if os.name == 'nt' else 'clear')
+	print(f"EPISODE = {episode} and EPISODE REWARD = {episode_reward}")
+
